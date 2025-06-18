@@ -58,3 +58,16 @@ build*
 
 # test files
 test_*.py
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE
+.zed/*
+compile_commands.json
+
+# Python cache
+__pycache__/
+
+# Lightning logs
+lightning_logs/*
