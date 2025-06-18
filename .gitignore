@@ -1,0 +1,60 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Mac files
+.*DS_Store
+
+# Build folder 
+build*
+.clangd
+
+# Parameters file
+*.params
+
+# data files
+*.vtu
+*.csv
+*.h5
+*.npz
+
+# Parameters files
+*.prm
+
+# Temp files 
+._*
+
+# images 
+*.png
+
+# test files
+test_*.py
