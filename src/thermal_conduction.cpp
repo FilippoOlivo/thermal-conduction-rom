@@ -122,7 +122,7 @@ SparseMatrix<double> &ThermalConduction::get_stiffness_matrix() {
 std::pair<Vector<double>, SparseMatrix<double>>
 ThermalConduction::get_affine_components(unsigned int i) {
     compute_affine_decomposition(i);
-    return std::make_pair(std::move(system_rhs), std::move(system_matrix));
+    return std::make_pair(system_rhs, std::move(system_matrix));
 }
 
 unsigned int ThermalConduction::get_num_regions() {
@@ -210,6 +210,10 @@ void ThermalConduction::set_boundary_temperatures(std::vector<double> boundary_t
    this->boundary_temperatures = boundary_temperatures;
 }
 
+void ThermalConduction::set_axis(unsigned int axis) {
+  this->axis = axis;
+}
+
 SparseMatrix<double> &ThermalConduction::get_system_matrix() {
   return system_matrix;
 }
@@ -229,7 +233,7 @@ Vector<double> ThermalConduction::solve_system() {
     solution.reinit(dof_handler.n_dofs());
     assemble_system(true);
     
-    SolverControl solver_control(1000, 1e-12);
+    SolverControl solver_control(100000, 1e-12);
     SolverCG<Vector<double>> solver(solver_control);
     solver.solve(system_matrix, solution, system_rhs,
                  PreconditionIdentity());

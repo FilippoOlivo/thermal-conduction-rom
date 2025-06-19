@@ -81,14 +81,13 @@ class POD:
         
     def _predict_non_affine(self, params):
         u_r_list = []
-        temp = [0,0,0,-1]
+        temperatures = [0,0,0,-1]
         self.problem.set_conductivities([20,10,1])
         for param in params:
-            print(param)
             region = [param[0].item(), param[1].item()]
-            self.problem.set_regions(param.detach().cpu().numpy())
-            temp[2] = param[2].item()
-            self.problem.set_boundary_temperatures(temp)
+            self.problem.set_regions(region)
+            temperatures[2] = param[2].item()
+            self.problem.set_boundary_temperatures(temperatures)
             self.problem.run_assemble_system()
             rows, cols, values = self.problem.get_system_matrix()
             A = torch.sparse_coo_tensor(

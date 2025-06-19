@@ -71,6 +71,8 @@ class ThermalConduction
     
     void set_boundary_temperatures(std::vector<double> boundary_temperatures);
     
+    void set_axis(unsigned int axis);
+    
     SparseMatrix<double>& get_system_matrix();
     
     Vector<double>& get_rhs();

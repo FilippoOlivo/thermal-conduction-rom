@@ -1,51 +1,3 @@
-// #include <pybind11/pybind11.h>
-// #include <pybind11/numpy.h>
-// #include <pybind11/stl.h>
-// #include "include/pod.hpp"
-
-// namespace py = pybind11;
-// using namespace dealii;
-
-// py::array_t<double> vector_to_numpy(const dealii::Vector<double> &vec) {
-//     return py::array(vec.size(), vec.begin());
-// }
-
-// LAPACKFullMatrix<double> to_full_matrix(py::array_t<double> arr) {
-//     auto buf = arr.request();
-//     if (buf.ndim != 2)
-//         throw std::runtime_error("Input array must be 2-dimensional.");
-
-//     const size_t rows = buf.shape[0];
-//     const size_t cols = buf.shape[1];
-//     auto* ptr = static_cast<double*>(buf.ptr);
-
-//     LAPACKFullMatrix<double> matrix(rows, cols);
-//     for (size_t i = 0; i < rows; ++i)
-//         for (size_t j = 0; j < cols; ++j)
-//             matrix(i, j) = ptr[i * cols + j];  // row-major indexing
-//     return matrix;
-// }
-
-// PYBIND11_MODULE(pod, m) {
-//     py::class_<POD>(m, "POD")
-//         .def(py::init<unsigned int, std::string &>())
-//         .def("store_data", [](POD &self, py::array_t<double> arr) {
-//             self.store_data(to_full_matrix(arr));
-//         })
-//         .def("get_singular_values", &POD::get_singular_values)
-//         .def("fit", &POD::fit)
-//         .def("get_snapshot_row", [](POD &self, unsigned int i) {
-//             return vector_to_numpy(self.get_snapshot_row(i));
-//         })
-//         .def("get_snapshot_column", [](POD &self, unsigned int i) {
-//             return vector_to_numpy(self.get_snapshot_column(i));
-//         })
-//         .def("predict", [](POD &self, std::vector<double> &params) {
-//             return vector_to_numpy(self.predict(params));
-//         })
-//         ;
-// }
-
 #include "include/thermal_conduction.hpp"
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -119,6 +71,7 @@ PYBIND11_MODULE(thermal_conduction, m) {
       .def("set_regions", &ThermalConduction::set_regions)
       .def("set_conductivities", &ThermalConduction::set_conductivities)
       .def("set_boundary_temperatures", &ThermalConduction::set_boundary_temperatures)
+      .def("set_axis", &ThermalConduction::set_axis)
       .def("run_assemble_system", &ThermalConduction::run_assemble_system)
       .def("get_system_matrix",
            [](ThermalConduction &self) {
