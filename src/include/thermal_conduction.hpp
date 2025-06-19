@@ -50,14 +50,11 @@ class ThermalConduction
     void 
     compute_stiffness_matrix();
     
-    void
-    compute_affine_decomposition();
-    
     SparseMatrix<double>&
     get_stiffness_matrix();
     
-    SparseMatrix<double>&
-    get_affine_stiffness_matrix(unsigned int i);
+    std::pair<Vector<double>, SparseMatrix<double>>
+    get_affine_components(unsigned int i);
     
     unsigned int
     get_num_regions();
@@ -67,9 +64,6 @@ class ThermalConduction
     
     std::vector<double>
     get_x();
-    
-    Vector<double>&
-    get_affine_rhs(unsigned int i);
     
     void set_conductivities(std::vector<double> conductivities);
     
@@ -134,5 +128,7 @@ class ThermalConduction
     
     void
     apply_diagonal_boundary_conditions(std::map<types::global_dof_index, double> &boundary_values, bool apply_to_solution=false);
+    
+    void compute_affine_decomposition(unsigned int i);
     
 };

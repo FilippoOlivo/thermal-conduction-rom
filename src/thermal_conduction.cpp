@@ -106,46 +106,23 @@ void ThermalConduction::assemble_system(bool apply_bc_to_solution) {
   apply_boundary_conditions(apply_bc_to_solution);
 }
 
-void ThermalConduction::compute_affine_decomposition() {
-  setup_system();
-
-  const unsigned int num_regions = get_num_regions();
-
-  affine_stiffness_matrices.resize(num_regions);
-  affine_rhs.resize(num_regions);
-
-  system_matrix.reinit(sparsity_pattern);
-  system_rhs.reinit(dof_handler.n_dofs());
-
-  for (unsigned int region = 0; region < num_regions; ++region) {
-    active_region = region;
+void ThermalConduction::compute_affine_decomposition(unsigned int i) {
+    setup_system();
+    active_region = i;
     system_matrix = 0;
     system_rhs = 0;
     assemble_system();
-    affine_stiffness_matrices[region].reinit(sparsity_pattern);
-    affine_stiffness_matrices[region].copy_from(system_matrix);
-    affine_rhs[region].reinit(dof_handler.n_dofs());
-    affine_rhs[region] = system_rhs;
-  }
-  active_region = -1;
+    active_region = -1;
 }
 
 SparseMatrix<double> &ThermalConduction::get_stiffness_matrix() {
   return system_matrix;
 }
 
-// std::vector<SparseMatrix<double>>&
-SparseMatrix<double> &
-ThermalConduction::get_affine_stiffness_matrix(unsigned int i) {
-  if (affine_stiffness_matrices.empty())
-    compute_affine_decomposition();
-  return affine_stiffness_matrices[i];
-}
-
-Vector<double> &ThermalConduction::get_affine_rhs(unsigned int i) {
-  if (affine_rhs.empty())
-    compute_affine_decomposition();
-  return affine_rhs[i];
+std::pair<Vector<double>, SparseMatrix<double>>
+ThermalConduction::get_affine_components(unsigned int i) {
+    compute_affine_decomposition(i);
+    return std::make_pair(std::move(system_rhs), std::move(system_matrix));
 }
 
 unsigned int ThermalConduction::get_num_regions() {

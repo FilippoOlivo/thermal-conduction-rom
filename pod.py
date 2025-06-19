@@ -1,12 +1,12 @@
-import build.thermal_conduction_bindings as btb
+
 import torch
 import numpy as np
 from pina.model.block import PODBlock
 
 class POD:
-    def __init__(self, n_modes, affine=True, fixed_stiffness=False, **kwargs):
+    def __init__(self, n_modes, problem, affine=True, fixed_stiffness=False):
         self.pod_block = PODBlock(n_modes, scale_coefficients=False)
-        self.problem = btb.ThermalConduction(**kwargs)
+        self.problem = problem
         self.A_q = []
         self.rhs_q = []
         self.A_r = []
@@ -14,15 +14,17 @@ class POD:
         self.affine = affine
         self.fixed_stiffness = fixed_stiffness
 
-    def _initialize_stiffness_matrix(self):
+    def _initialize_affine_components(self):
         self.A_q.clear()
         num_regions = self.problem.get_num_regions()
         for i in range(num_regions):
-            rows, cols, values = self.problem.get_affine_stiffness_matrix(i)
+            rhs, matrix = self.problem.get_affine_components(i)
+            rows, cols, values = matrix
             indices = torch.tensor(np.array([rows, cols]), dtype=torch.long)
             shape = (indices.max().item() + 1, indices.max().item() + 1)
             values_tensor = torch.tensor(values, dtype=torch.float64)
             self.A_q.append(torch.sparse_coo_tensor(indices, values_tensor, shape))
+            self.rhs_q.append(torch.tensor(rhs, dtype=torch.float64))
 
     def _compute_reduced_stiffness_matrix(self):
         self.A_r.clear()
@@ -34,17 +36,16 @@ class POD:
     def _compite_reduced_rhs(self):
         self.rhs_r.clear()
         V = self.pod_block.basis
-        self.rhs_q = [torch.tensor(self.problem.get_affine_rhs(i)) for i in range(self.problem.get_num_regions())]
         for rhs in self.rhs_q:
             self.rhs_r.append(V @ rhs)
 
     def fit(self, snapshots):
         self.pod_block.fit(snapshots, randomized=False)
         if self.affine:
-            self._fit_affine(snapshots)
+            self._fit_affine()
 
-    def _fit_affine(self, snapshots):
-        self._initialize_stiffness_matrix()
+    def _fit_affine(self):
+        self._initialize_affine_components()
         self._compute_reduced_stiffness_matrix()
         self._compite_reduced_rhs()
         

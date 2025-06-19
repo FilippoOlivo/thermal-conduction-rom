@@ -35,7 +35,7 @@
 
 # # ----------------------------
 cmake_minimum_required(VERSION 3.18)
-project(ThermalConductionBindings LANGUAGES CXX)
+project(ThermalConduction LANGUAGES CXX)
 
 # Enable CMP0148 to avoid Python warnings from pybind11
 if(POLICY CMP0148)
@@ -47,17 +47,17 @@ find_package(deal.II REQUIRED HINTS $ENV{DEAL_II_DIR})
 find_package(pybind11 REQUIRED)
 
 # Create module
-add_library(thermal_conduction_bindings MODULE
+add_library(thermal_conduction MODULE
   src/bindings.cpp
   src/thermal_conduction.cpp
 )
 
 # Use deal.II macros and link against pybind11
-deal_ii_setup_target(thermal_conduction_bindings RELEASE)
-target_link_libraries(thermal_conduction_bindings pybind11::module)
+deal_ii_setup_target(thermal_conduction RELEASE)
+target_link_libraries(thermal_conduction pybind11::module)
 
 # Output Python-style shared object (no 'lib' prefix)
-set_target_properties(thermal_conduction_bindings PROPERTIES
+set_target_properties(thermal_conduction PROPERTIES
   PREFIX ""
-  OUTPUT_NAME "thermal_conduction_bindings"
+  OUTPUT_NAME "thermal_conduction"
 )
