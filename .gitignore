@@ -53,9 +53,6 @@ build*
 # Temp files 
 ._*
 
-# images 
-*.png
-
 # test files
 test_*.py
 
