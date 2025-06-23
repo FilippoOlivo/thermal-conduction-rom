@@ -1,6 +1,6 @@
 import torch 
 import numpy as np
-from pina.model.block import PODBlock, RBFBlock
+from pina.model.block import PODBlock
 from matplotlib import pyplot as plt
 from matplotlib.tri import Triangulation
 import h5py
@@ -17,22 +17,22 @@ def compute_error(u_true, u_pred):
 with h5py.File('solution.h5', 'r') as f:
     x, y = f['x'][:], f['y'][:]  
 data = np.load("data_vert.npz")
-simulations = data['solutions']
+simulations = data['simulations']
 params = data['parameters']
 
 
-p_train = torch.tensor(params[:400], dtype=torch.float64)
-u_train = torch.tensor(simulations[:400], dtype=torch.float64)
+p_train = torch.tensor(params[:1280], dtype=torch.float64)
+u_train = torch.tensor(simulations[:1280], dtype=torch.float64)
 
-p_test = torch.tensor(params[400:], dtype=torch.float64)
-u_test = torch.tensor(simulations[400:], dtype=torch.float64)
+p_test = torch.tensor(params[1280:], dtype=torch.float64)
+u_test = torch.tensor(simulations[1280:], dtype=torch.float64)
 
 problem = SupervisedProblem(input_=p_train, output_=u_train)
 
 class PODNN(torch.nn.Module):
     def __init__(self, pod_rank, layers, func):
         super().__init__()
-        self.pod = PODBlock(pod_rank)
+        self.pod = PODBlock(pod_rank, scale_coefficients=False)
         self.nn = FeedForward(
             input_dimensions=3,
             output_dimensions=pod_rank,
@@ -47,7 +47,7 @@ class PODNN(torch.nn.Module):
     def fit_pod(self, x):
         self.pod.fit(x)
 
-pod_nn = PODNN(pod_rank=5, layers=[10, 50, 10], func=torch.nn.Softplus)
+pod_nn = PODNN(pod_rank=250, layers=[128], func=torch.nn.Softplus)
 
 pod_nn_solver = SupervisedSolver(
     problem=problem,
@@ -82,7 +82,7 @@ pred = u_pred[0].detach().cpu().numpy()
 true = u_test[0].detach().cpu().numpy()
 diff = np.abs(pred - true)
 
-levels_main = np.linspace(0, 500, 100)
+levels_main = np.linspace(0, true.max(), 100)
 levels_diff = np.linspace(0, diff.max(), 100)
 
 # POD-RBF plot

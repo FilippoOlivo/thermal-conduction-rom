@@ -13,7 +13,7 @@ def compute_error(u_true, u_pred):
 with h5py.File('solution.h5', 'r') as f:
     x, y = f['x'][:], f['y'][:]  
 data = np.load("data_vert.npz")
-simulations = data['solutions']
+simulations = data['simulations']
 params = data['parameters']
 
 p_train = torch.tensor(params[:400], dtype=torch.float64)
@@ -40,7 +40,7 @@ class PODRBF(torch.nn.Module):
         self.rbf.fit(p, self.pod.reduce(x))
         self.rbf._coeffs = self.rbf._coeffs.to(torch.float64)
         
-pod_rbf = PODRBF(pod_rank=32, rbf_kernel="thin_plate_spline").double()
+pod_rbf = PODRBF(pod_rank=250, rbf_kernel="thin_plate_spline").double()
 
 # fit POD-RBF model
 pod_rbf.fit(p_train, u_train)
@@ -64,7 +64,7 @@ podrbf = u_pred[0].detach().cpu().numpy()
 utrue = u_test[0].detach().cpu().numpy()
 diff = np.abs(podrbf - utrue)
 
-levels_main = np.linspace(0, 500, 100)
+levels_main = np.linspace(0, utrue.max(), 100)
 levels_diff = np.linspace(0, diff.max(), 100)
 
 # POD-RBF plot
