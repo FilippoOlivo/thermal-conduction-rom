@@ -1,23 +1,18 @@
 #include "include/thermal_conduction.hpp"
-#include "include/utils.hpp"
 #include "deal.II/base/function.h"
+#include "include/utils.hpp"
 
 ThermalConduction::ThermalConduction(std::vector<double> regions,
-                        std::vector<double> conductivities,
-                        std::vector<double> boundary_temperatures,
-                        unsigned int axis,
-                        std::string parameter_file)
-    : grid_parameters(GridParameters())
-    , triangulation()
-    , fe(1)
-    , dof_handler(triangulation)
-    , regions(regions)
-    , axis(axis)
-    , conductivities(conductivities)
-    , boundary_temperatures(boundary_temperatures)
-{
-    ParameterAcceptor::initialize(parameter_file);
-    make_grid();
+                                     std::vector<double> conductivities,
+                                     std::vector<double> boundary_temperatures,
+                                     unsigned int axis,
+                                     std::string parameter_file)
+    : grid_parameters(GridParameters()), triangulation(), fe(1),
+      dof_handler(triangulation), regions(regions), axis(axis),
+      conductivities(conductivities),
+      boundary_temperatures(boundary_temperatures) {
+  ParameterAcceptor::initialize(parameter_file);
+  make_grid();
 }
 
 void ThermalConduction::make_grid() {
@@ -51,19 +46,20 @@ void ThermalConduction::setup_system() {
   system_rhs.reinit(dof_handler.n_dofs());
 }
 
-void ThermalConduction::assemble_system_matrix(
-    FEValues<dim> &fe_values, FullMatrix<double> &cell_matrix, int region) {
+void ThermalConduction::assemble_system_matrix(FEValues<dim> &fe_values,
+                                               FullMatrix<double> &cell_matrix,
+                                               int region) {
   for (unsigned int q = 0; q < fe_values.n_quadrature_points; ++q)
     for (unsigned int i = 0; i < fe.dofs_per_cell; ++i)
       for (unsigned int j = 0; j < fe.dofs_per_cell; ++j)
-        cell_matrix(i, j) += conductivities[region] * fe_values.shape_grad(i, q) *
+        cell_matrix(i, j) += conductivities[region] *
+                             fe_values.shape_grad(i, q) *
                              fe_values.shape_grad(j, q) * fe_values.JxW(q);
 }
 
 void ThermalConduction::apply_boundary_conditions(bool apply_bc_to_solution) {
   std::map<types::global_dof_index, double> boundary_values;
-  for (unsigned int i = 0; i < boundary_temperatures.size();
-       i++) {
+  for (unsigned int i = 0; i < boundary_temperatures.size(); i++) {
     const double temperature = boundary_temperatures[i];
     if (temperature >= 0) {
       Functions::ConstantFunction<dim> boundary_function(temperature);
@@ -92,7 +88,7 @@ void ThermalConduction::assemble_system(bool apply_bc_to_solution) {
     cell_rhs = 0;
     fe_values.reinit(cell);
     cell->get_dof_indices(local_dof_indices);
-    
+
     int region = get_point_region(cell->center());
     if (region != active_region && active_region != -1)
       continue;
@@ -107,12 +103,12 @@ void ThermalConduction::assemble_system(bool apply_bc_to_solution) {
 }
 
 void ThermalConduction::compute_affine_decomposition(unsigned int i) {
-    setup_system();
-    active_region = i;
-    system_matrix = 0;
-    system_rhs = 0;
-    assemble_system();
-    active_region = -1;
+  setup_system();
+  active_region = i;
+  system_matrix = 0;
+  system_rhs = 0;
+  assemble_system();
+  active_region = -1;
 }
 
 SparseMatrix<double> &ThermalConduction::get_stiffness_matrix() {
@@ -121,13 +117,11 @@ SparseMatrix<double> &ThermalConduction::get_stiffness_matrix() {
 
 std::pair<Vector<double>, SparseMatrix<double>>
 ThermalConduction::get_affine_components(unsigned int i) {
-    compute_affine_decomposition(i);
-    return std::make_pair(system_rhs, std::move(system_matrix));
+  compute_affine_decomposition(i);
+  return std::make_pair(system_rhs, std::move(system_matrix));
 }
 
-unsigned int ThermalConduction::get_num_regions() {
-  return regions.size() + 1;
-}
+unsigned int ThermalConduction::get_num_regions() { return regions.size() + 1; }
 
 std::vector<double> ThermalConduction::get_x() {
   std::map<types::global_dof_index, Point<dim>> support_points;
@@ -181,18 +175,19 @@ void ThermalConduction::apply_diagonal_boundary_conditions(
     double rhs_value = pair.second;
     // Set the diagonal entry to 1 and all other entries in the row to 0
     double value = 0;
-    for (typename SparseMatrix<double>::iterator p = system_matrix.begin(dof_index);
-            p != system_matrix.end(dof_index); ++p)
-    {
-        value = p->value();
-        p->value() = 0.;
+    for (typename SparseMatrix<double>::iterator p =
+             system_matrix.begin(dof_index);
+         p != system_matrix.end(dof_index); ++p) {
+      value = p->value();
+      p->value() = 0.;
     }
 
-    if (get_point_region(support_points[dof_index]) == active_region || active_region == -1)  {
-        
+    if (get_point_region(support_points[dof_index]) == active_region ||
+        active_region == -1) {
+
       system_matrix.set(dof_index, dof_index, value);
       system_rhs[dof_index] = rhs_value * value;
-      if (apply_to_solution) 
+      if (apply_to_solution)
         solution[dof_index] = rhs_value;
     }
   }
@@ -206,36 +201,31 @@ void ThermalConduction::set_conductivities(std::vector<double> conductivities) {
   this->conductivities = conductivities;
 }
 
-void ThermalConduction::set_boundary_temperatures(std::vector<double> boundary_temperatures) {
-   this->boundary_temperatures = boundary_temperatures;
+void ThermalConduction::set_boundary_temperatures(
+    std::vector<double> boundary_temperatures) {
+  this->boundary_temperatures = boundary_temperatures;
 }
 
-void ThermalConduction::set_axis(unsigned int axis) {
-  this->axis = axis;
-}
+void ThermalConduction::set_axis(unsigned int axis) { this->axis = axis; }
 
 SparseMatrix<double> &ThermalConduction::get_system_matrix() {
   return system_matrix;
 }
 
-Vector<double> &ThermalConduction::get_rhs() {
-  return system_rhs;
-}
+Vector<double> &ThermalConduction::get_rhs() { return system_rhs; }
 
-void ThermalConduction::run_assemble_system()
-{
-    setup_system();
-    assemble_system();
+void ThermalConduction::run_assemble_system() {
+  setup_system();
+  assemble_system();
 }
 
 Vector<double> ThermalConduction::solve_system() {
-    setup_system();
-    solution.reinit(dof_handler.n_dofs());
-    assemble_system(true);
-    
-    SolverControl solver_control(100000, 1e-12);
-    SolverCG<Vector<double>> solver(solver_control);
-    solver.solve(system_matrix, solution, system_rhs,
-                 PreconditionIdentity());
-    return solution;
+  setup_system();
+  solution.reinit(dof_handler.n_dofs());
+  assemble_system(true);
+
+  SolverControl solver_control(100000, 1e-12);
+  SolverCG<Vector<double>> solver(solver_control);
+  solver.solve(system_matrix, solution, system_rhs, PreconditionIdentity());
+  return solution;
 }
