@@ -22,9 +22,9 @@ class POD:
             rows, cols, values = matrix
             indices = torch.tensor(np.array([rows, cols]), dtype=torch.long)
             shape = (indices.max().item() + 1, indices.max().item() + 1)
-            values_tensor = torch.tensor(np.array(values), dtype=torch.float64)
+            values_tensor = torch.tensor(np.array(values), dtype=torch.float32)
             self.A_q.append(torch.sparse_coo_tensor(indices, values_tensor, shape))
-            self.rhs_q.append(torch.tensor(rhs, dtype=torch.float64))
+            self.rhs_q.append(torch.tensor(rhs, dtype=torch.float32))
 
     def _compute_reduced_stiffness_matrix(self):
         self.A_r.clear()
@@ -92,10 +92,10 @@ class POD:
             rows, cols, values = self.problem.get_system_matrix()
             A = torch.sparse_coo_tensor(
                 torch.tensor(np.array([rows, cols]), dtype=torch.long),
-                torch.tensor(np.array(values), dtype=torch.float64),
+                torch.tensor(np.array(values), dtype=torch.float32),
                 (max(rows) + 1, max(cols) + 1)
             )
-            rhs = torch.tensor(self.problem.get_rhs(), dtype=torch.float64)
+            rhs = torch.tensor(self.problem.get_rhs(), dtype=torch.float32)
             A_r = self.pod_block.basis @ torch.sparse.mm(A, self.pod_block.basis.T)
             rhs_r = self.pod_block.basis @ rhs
             # Solve the reduced system - use direct solve for better stability

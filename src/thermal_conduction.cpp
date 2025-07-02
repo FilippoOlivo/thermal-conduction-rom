@@ -1,6 +1,5 @@
 #include "include/thermal_conduction.hpp"
 #include "deal.II/base/function.h"
-#include "include/utils.hpp"
 
 ThermalConduction::ThermalConduction(std::vector<double> regions,
                                      std::vector<double> conductivities,
