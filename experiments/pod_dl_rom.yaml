@@ -1,0 +1,38 @@
+model:
+  model_class: model.pod_dl_rom.POD_DL_ROM
+  input_dim: 16641
+  latent_dim: 3
+  input_channels: 1
+  output_channels: 64
+  pod_modes: 400
+  hidden_channels: [8, 16, 32]
+  kernels: [3, 3, 5, 5]
+  strides: [1, 2, 2, 2]
+  bottleneck_hidden_dim: 128
+
+interpolation:
+  model_class: model.dl_rom.InterpolationNetwork
+  input_dim: 3 
+  latent_dim: 3
+  layers: [128,128,128,128]
+
+data: 
+  data_path: data/data_vert.npz
+  dataset_length: 5000
+  normalize: True
+  
+optimizer:
+  optimizer_class: torch.optim.AdamW
+  lr: 0.0001
+
+trainer: 
+  max_epochs: 100000
+  batch_size: 128
+  train_size: 0.9
+  val_size: 0.1
+  accelerator: 'cuda'
+  devices: 1
+  log_every_n_steps: 0
+  patience: 100
+  log_dir: logs/
+  name: pod_dl_rom

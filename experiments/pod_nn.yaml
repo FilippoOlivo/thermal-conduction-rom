@@ -1,0 +1,26 @@
+model:
+  model_class: model.pod_nn.PODNN
+  pod_rank: 96 
+  layers: [8, 16, 32, 64, 128]
+  
+data: 
+  data_path: data/data_vert.npz
+  dataset_length: 6000
+  normalize: True
+  
+optimizer:
+  optimizer_class: torch.optim.AdamW
+  lr: 0.001
+
+trainer: 
+  max_epochs: 100000
+  batch_size: 128
+  train_size: 0.9
+  val_size: 0.1
+  accelerator: 'cuda'
+  devices: 1
+  log_every_n_steps: 0
+  patience: 100
+  log_dir: logs/
+  name: pod_nn
+  
