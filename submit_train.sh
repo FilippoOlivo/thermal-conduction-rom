@@ -11,3 +11,5 @@ for dir in experiments/dl_rom/* ; do
     echo "Processing $dir"
     python run.py --config $dir
 done
+
+python run.py --config experiments/fno.yaml
