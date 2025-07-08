@@ -20,6 +20,9 @@ def compute_error(u_true, u_pred):
     return np.linalg.norm(u_true - u_pred) / np.linalg.norm(u_true)
 
 def argparse():
+    """
+    Parse command line arguments for training configuration.
+    """
     import argparse
     parser = argparse.ArgumentParser(description="Train a model with specified "
         "parameters.")
@@ -30,6 +33,7 @@ def argparse():
 def load_config(config_file):
     """
     Configure the training parameters.
+    
     :param str config_file: Path to the configuration file.
     :return: Configuration dictionary.
     :rtype: dict
@@ -39,6 +43,13 @@ def load_config(config_file):
     return config
 
 def load_model(model_args):
+    """
+    Load the model class and instantiate it with the provided arguments.
+    
+    :param dict model_args: Arguments for the model class.
+    :return: An instance of the model class.
+    :rtype: torch.nn.Module
+    """
     model_class = model_args.pop("model_class", "")
     module_path, class_name = model_class.rsplit(".", 1)
     module = importlib.import_module(module_path)
@@ -47,9 +58,17 @@ def load_model(model_args):
     return model
 
 def load_data(data_args):
+    """
+    Load the dataset from the specified path and preprocess it.
+    
+    :param dict data_args: Arguments for loading the dataset.
+    :return: Training and testing datasets, normalizers, and points.
+    :rtype: tuple
+        - u_train (torch.Tensor): Training simulations.
+        - p_train (torch.Tensor): Training parameters.
+    """
     data_path = data_args.get('data_path', "")
     data = np.load(data_path)
-    points = data['points']
     simulations = torch.tensor(data['simulations'], dtype=torch.float32)
     params = torch.tensor(data['parameters'], dtype=torch.float32)
     normalize = data_args.get('normalize', True)
@@ -57,19 +76,25 @@ def load_data(data_args):
     simulations = simulations[:dataset_len]
     params = params[:dataset_len]
     train_size = int(dataset_len * 0.9)
-    u_train, u_test = simulations[:train_size], simulations[train_size:]
-    p_train, p_test = params[:train_size], params[train_size:]
+    u_train  = simulations[:train_size]
+    p_train = params[:train_size]
     if normalize:
         normalizer_sims = Normalizer(u_train)
         normalizer_params = NormalizerParameters(p_train)
         u_train = normalizer_sims.normalize(u_train)
-        p_train, p_test = normalizer_params.normalize(p_train), normalizer_params.normalize(p_test)
-    else:
-        normalizer_sims = None
-        normalizer_params = None
-    return u_train, u_test, p_train, p_test, normalizer_sims, points
+        p_train = normalizer_params.normalize(p_train)
+    return u_train, p_train
     
 def load_trainer(trainer_args, solver):
+    """
+    Load and configure the Trainer for training.
+    
+    :param dict trainer_args: Arguments for the Trainer.
+    :param ~pina.solver.solver_interface.SolverInterface solver: The solver 
+        instance to be used by the Trainer.
+    :return: Configured Trainer instance.
+    :rtype: Trainer
+    """
     patience = trainer_args.pop("patience", 100)
     es = EarlyStopping(
         monitor='val_loss',
@@ -98,6 +123,13 @@ def load_trainer(trainer_args, solver):
     return trainer
 
 def load_optimizer(optim_args):
+    """
+    Load the optimizer class and instantiate it with the provided arguments.
+    
+    :param dict optim_args: Arguments for the optimizer class.
+    :return: An instance of the TorchOptimizer class.
+    :rtype: TorchOptimizer
+    """
     print("Loading optimizer with args:", optim_args)
     optim_class = optim_args.pop("optimizer_class", "")
     module_path, class_name = optim_class.rsplit(".", 1)
@@ -109,9 +141,25 @@ def load_optimizer(optim_args):
     )
     
 def train(trainer):
+    """
+    Train the model using the provided Trainer instance.
+    
+    :param Trainer trainer: The Trainer instance configured for training.
+    """
     trainer.train()
 
 def save_model(solver, trainer, problem, model, int_net):
+    """
+    Save the trained model and its components to disk.
+    
+    :param ~pina.solver.solver_interface.SolverInterface solver: The solver 
+        instance containing the trained model.
+    :param Trainer trainer: The Trainer instance used for training.
+    :param ~pina.problem.zoo.SupervisedProblem problem: The problem instance
+        associated with the solver.
+    :param torch.nn.Module model: The trained model to be saved.
+    :param torch.nn.Module int_net: The interpolation network, if used.
+    """
     model_path = trainer.logger.log_dir.replace("logs", "models")
     os.makedirs(model_path, exist_ok=True)
     if int_net is None:
@@ -125,7 +173,9 @@ def save_model(solver, trainer, problem, model, int_net):
         model.eval()
         torch.save(model.state_dict(), os.path.join(model_path, 'model.pth'))
         if hasattr(model, 'pod'):
-            torch.save(model.pod.basis, os.path.join(model_path, 'pod_basis.pth'))
+            torch.save(model.pod.basis, os.path.join(model_path, 
+                'pod_basis.pth')
+            )
     else: 
         solver = ReducedOrderModelSolver.load_from_checkpoint(
             os.path.join(trainer.logger.log_dir, 'checkpoints', 
@@ -135,11 +185,17 @@ def save_model(solver, trainer, problem, model, int_net):
             reduction_network=model
         )
         int_net = solver.model["interpolation_network"].cpu()
-        torch.save(int_net.state_dict(), os.path.join(model_path, 'interpolation_network.pth'))
+        torch.save(int_net.state_dict(), os.path.join(model_path, 
+            'interpolation_network.pth')
+        )
         model = solver.model["reduction_network"].cpu()
-        torch.save(model.state_dict(), os.path.join(model_path, 'reduction_network.pth'))
+        torch.save(model.state_dict(), os.path.join(model_path, 
+            'reduction_network.pth')
+        )
         if hasattr(model, 'pod'):
-            torch.save(model.pod.basis, os.path.join(model_path, 'pod_basis.pth'))
+            torch.save(model.pod.basis, os.path.join(model_path, 
+                'pod_basis.pth')
+            )
 
 
 def main():
@@ -157,7 +213,7 @@ def main():
         int_net = None
         
     data_args = config.get("data", {})
-    u_train, u_test, p_train, p_test, normalizer_sims, points = load_data(data_args)
+    u_train, p_train = load_data(data_args)
     problem = SupervisedProblem(output_=u_train, input_=p_train)
     optimizer = load_optimizer(config.get("optimizer", {}))
     if int_net is None:
