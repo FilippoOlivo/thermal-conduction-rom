@@ -15,9 +15,9 @@ problem = ThermalConduction(regions=regions,
 
 # Sample temperatures
 min_, max_ = [.5, 3.75], [3.25, 5.5]
-regions = [[random.uniform(min_[i], max_[i]) for i in range(len(regions))] for _ in range(6000)]
-min_, max_ = 100, 125
-temperatures = [random.uniform(min_, max_) for _ in range(6000)]
+regions = [[random.uniform(min_[i], max_[i]) for i in range(len(regions))] for _ in range(2000)]
+min_, max_ = 100, 1000
+temperatures = [random.uniform(min_, max_) for _ in range(2000)]
 
 
 def simulate(regions, temperatures):
@@ -33,7 +33,7 @@ def simulate(regions, temperatures):
     return np.array(simulations), np.array(parameters)
 
 s,p = simulate(regions, temperatures)
-np.savez('data_vert.npz', simulations=s, parameters=p)
+np.savez('data/data_vert.npz', simulations=s, parameters=p)
 
 
  

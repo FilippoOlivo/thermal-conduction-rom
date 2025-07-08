@@ -1,6 +1,6 @@
 model:
   model_class: rom.model.pod_nn.PODNN
-  pod_rank: [n]
+  pod_rank: 24
   layers: [16, 64, 128]
   
 data: 
@@ -23,5 +23,5 @@ trainer:
   patience: 100
   log_dir: logs/
   name: pod_nn
-  version: [v]
+  version: 24
   

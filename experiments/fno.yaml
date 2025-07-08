@@ -1,10 +1,14 @@
 model:
-  model_class: rom.model.pod_nn.PODNN
-  pod_rank: [n]
-  layers: [16, 64, 128]
-  
+  model_class: rom.model.fno.FNO2d
+  input_channels: 4
+  output_channels: 1
+  n_modes: 32
+  padding: 8
+  inner_size: 16
+  n_layers: 4
+
 data: 
-  data_path: data/data_vert.npz
+  data_path: data/data_vert_no.npz
   dataset_length: 2000
   normalize: True
   
@@ -22,6 +26,5 @@ trainer:
   log_every_n_steps: 0
   patience: 100
   log_dir: logs/
-  name: pod_nn
-  version: [v]
-  
+  name: fno
+  version: 32

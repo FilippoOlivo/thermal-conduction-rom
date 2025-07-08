@@ -1,6 +1,6 @@
 model:
   model_class: rom.model.pod_dl_rom.POD_DL_ROM
-  latent_dim: [n]
+  latent_dim: 24
   input_channels: 1
   output_channels: 64
   pod_modes: 144
@@ -13,7 +13,7 @@ model:
 interpolation:
   model_class: rom.model.interpolation_network.InterpolationNetwork
   input_dim: 3 
-  latent_dim: [n]
+  latent_dim: 24
   layers: [128,128,128,128]
 
 data: 
@@ -36,4 +36,4 @@ trainer:
   patience: 150
   log_dir: logs/
   name: pod_dl_rom
-  version: [v]
+  version: 24
