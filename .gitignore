@@ -68,3 +68,8 @@ __pycache__/
 
 # Lightning logs
 lightning_logs/*
+logs/*
+models/*
+
+# Avoid loading data 
+
